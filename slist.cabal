@@ -1,16 +1,17 @@
-cabal-version:       3.0
+cabal-version:       2.4
 name:                slist
-version:             0.0.0
+version:             0.1.1.0
 synopsis:            Sized list
 description:         This package implements @Slist@ data structure that stores the size
                      of the list along with the list itself.
-homepage:            https://github.com/vrom911/slist
-bug-reports:         https://github.com/vrom911/slist/issues
+homepage:            https://github.com/kowainik/slist
+bug-reports:         https://github.com/kowainik/slist/issues
 license:             MPL-2.0
 license-file:        LICENSE
 author:              Veronika Romashkina
-maintainer:          vrom911@gmail.com
-copyright:           2019 Veronika Romashkina
+maintainer:          Kowainik <xrom.xkov@gmail.com>
+copyright:           2019-2020 Veronika Romashkina
+                     2020 Kowainik
 category:            Data Structures, List
 build-type:          Simple
 extra-doc-files:     README.md
@@ -18,14 +19,15 @@ extra-doc-files:     README.md
 tested-with:         GHC == 8.2.2
                    , GHC == 8.4.4
                    , GHC == 8.6.5
-                   , GHC == 8.8.1
+                   , GHC == 8.8.3
+                   , GHC == 8.10.1
 
 source-repository head
   type:                git
-  location:            https://github.com/vrom911/slist.git
+  location:            https://github.com/kowainik/slist.git
 
 common common-options
-  build-depends:       base >= 4.10.1.0 && < 4.14
+  build-depends:       base >= 4.10.1.0 && < 4.15
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns
@@ -34,9 +36,15 @@ common common-options
                        -Widentities
                        -Wredundant-constraints
                        -fhide-source-paths
+  if impl(ghc >= 8.8.1)
+    ghc-options:       -Wmissing-deriving-strategies
+                       -Werror=missing-deriving-strategies
+  if impl(ghc >= 8.10.1)
+    ghc-options:       -Wunused-packages
 
   default-extensions:  ConstraintKinds
                        DeriveGeneric
+                       DerivingStrategies
                        GeneralizedNewtypeDeriving
                        InstanceSigs
                        KindSignatures
@@ -57,25 +65,26 @@ library
   exposed-modules:     Slist
                          Slist.Size
 
-test-suite slist-test
-  import:              common-options
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-
-  build-depends:       slist
-
-  ghc-options:         -threaded
-                       -rtsopts
-                       -with-rtsopts=-N
-
 test-suite slist-doctest
   import:              common-options
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Doctest.hs
-
   build-depends:       doctest
                      , Glob
-
   ghc-options:         -threaded
+
+test-suite slist-test
+  import:              common-options
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  other-modules:       Test.Slist.Size
+  build-depends:       slist
+                     , hedgehog ^>= 1.0
+                     , hspec
+                     , hspec-hedgehog ^>= 0.0.1
+                     , splitmix < 0.0.5
+  ghc-options:         -threaded
+                       -rtsopts
+                       -with-rtsopts=-N

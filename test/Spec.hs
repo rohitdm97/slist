@@ -1,4 +1,9 @@
 module Main (main) where
 
+import Test.Hspec (hspec)
+
+import Test.Slist.Size (sizeSpec)
+
+
 main :: IO ()
-main = putStrLn ("Test suite not yet implemented" :: String)
+main = hspec sizeSpec

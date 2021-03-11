@@ -1,9 +1,16 @@
--- | Lists size representation
+{- |
+Copyright:  (c) 2019-2020 Veronika Romashkina
+            (c) 2020 Kowainik
+License:    MPL-2.0
+Maintainer: Kowainik <xrom.xkov@gmail.com>
+
+Lists size representation.
+-}
 
 module Slist.Size
-       ( Size (..)
-       , sizes
-       ) where
+    ( Size (..)
+    , sizes
+    ) where
 
 
 {- | Data type that represents lists size/lengths.
@@ -26,19 +33,32 @@ data Size
     = Size !Int
     -- | Infinite size.
     | Infinity
-    deriving (Show, Read, Eq, Ord)
+    deriving stock (Show, Read, Eq, Ord)
 
 {- | Efficient implementations of numeric operations with 'Size's.
 
-Any operations with 'Infinity' size results into 'Infinity'.
+Any operations with 'Infinity' size results into 'Infinity'. When
+'Infinity' is a left argument, all operations are also
+right-lazy. Operations are checked for integral overflow under the
+assumption that all values inside 'Size' are positive.
 
-TODO: checking on overflow when '+' or '*' sizes.
+>>> Size 10 + Size 5
+Size 15
+>>> Size 5 * Infinity
+Infinity
+>>> Infinity + error "Unevaluated size"
+Infinity
+>>> Size (10 ^ 10) * Size (10 ^ 10)
+Infinity
 -}
 instance Num Size where
     (+) :: Size -> Size -> Size
     Infinity + _ = Infinity
     _ + Infinity = Infinity
-    (Size x) + (Size y) = Size $ x + y
+    (Size x) + (Size y) =
+        if x + y < x  -- integer overflow
+        then Infinity
+        else Size $ x + y
     {-# INLINE (+) #-}
 
     (-) :: Size -> Size -> Size
@@ -50,7 +70,13 @@ instance Num Size where
     (*) :: Size -> Size -> Size
     Infinity * _ = Infinity
     _ * Infinity = Infinity
-    (Size x) * (Size y) = Size (x * y)
+    (Size x) * (Size y)
+        | x == 0 || y == 0 = 0
+        | otherwise =
+            let result = x * y in
+            if x == result `div` y
+            then Size (x * y)
+            else Infinity  -- multiplication overflow
     {-# INLINE (*) #-}
 
     abs :: Size -> Size

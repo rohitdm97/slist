@@ -1,28 +1,30 @@
 sudo: true
-language: haskell
+language: generic
 
 git:
   depth: 5
 
-cabal: "3.0"
-
 cache:
   directories:
-  - "$HOME/.cabal/store"
+  - "$HOME/.stack"
 
 matrix:
   include:
-  - ghc: 8.2.2
-  - ghc: 8.4.4
-  - ghc: 8.6.5
-  - ghc: 8.8.1
+  - os: linux
+    env: GHC="8.8.3"
+  - os: osx
+    env: GHC="8.8.3"
 
 install:
-  - cabal new-update
-  - cabal new-build --enable-tests --enable-benchmarks
+  # HLint check
+  - curl -sSL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint .
+
+  - curl -sSL https://get.haskellstack.org/ | sh
+  - stack --version
+  - stack build --test --no-run-tests --bench --no-run-benchmarks
 
 script:
-  - cabal new-test --enable-tests
+  - stack test --no-terminal
 
 notifications:
   email: false
